@@ -24,10 +24,10 @@ namespace ribbon_xnk_sunzex
             sTemplatePath = ReadFromRegistry(KEY_NAME_SUNZEX_templatePath, "");
             editBox_hoadonmau.Text = sTemplatePath;
 
-            sOutputPath = ReadFromRegistry(KEY_NAME_SUNZEX_outputPath, "");
+            sOutputPath = ReadFromRegistry(KEY_NAME_SUNZEX_outputPath, sTemplatePath);
             editBox_thumucxuat.Text = sOutputPath;
 
-            checkBox_openAfter.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_openAfter, "0"));
+            checkBox_openAfter.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_openAfter, "1"));
 
             checkBox_xuatRieng.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_outSeparate, "0"));
         }
@@ -96,8 +96,10 @@ namespace ribbon_xnk_sunzex
             }
             ShippingModel ship = new ShippingModel();
             string a;
-            a = worksheet.Range["F8"].Value2; ship.date = a.Substring(0, 10);
-            a = worksheet.Range["I46"].Value2; ship.shipment = a.Substring(3, 3) + a.Substring(0, 3) + a.Substring(6, 4);
+            a = worksheet.Range["F8"].Value2; 
+            ship.date = a.Substring(0, 10);
+            a = worksheet.Range["I46"].Value2; 
+            ship.shipment = a.Substring(3, 3) + a.Substring(0, 3) + a.Substring(6, 4);
             a = worksheet.Range["L6"].Value2;
             ship.transport = "BY " + (("" + a[a.Length - 1]).Equals("3") || ("" + a[a.Length - 1]).Equals("2") ? "SEA" : ("" + a[a.Length - 1]).Equals("4") ? "TRUCK" : ("" + a[a.Length - 1]).Equals("1") ? "AIR" : "OTHER");
             ship.destination = worksheet.Range["M43"].Value2;
@@ -130,7 +132,11 @@ namespace ribbon_xnk_sunzex
             
             Copy_shipping_work_sheet(ship);
         }
-        private void Copy_shipping_work_sheet(ShippingModel ship)
+        private void Copy_invoice_work_sheet(InvoiceModel invoice)
+        { 
+        
+        }
+            private void Copy_shipping_work_sheet(ShippingModel ship)
         {
             Microsoft.Office.Interop.Excel.Application app = new Microsoft.Office.Interop.Excel.Application();
             try
@@ -247,6 +253,72 @@ namespace ribbon_xnk_sunzex
         private void checkBox_xuatRieng_Click(object sender, RibbonControlEventArgs e)
         {
             StoreInRegistry(KEY_NAME_SUNZEX_outSeparate, checkBox_xuatRieng.Checked ? "1" : "0");
+        }
+
+        private void button_invoice_Click(object sender, RibbonControlEventArgs e)
+        {
+            Workbook wb = (Workbook)Globals.ThisAddIn.Application.ActiveWorkbook;
+            Worksheet worksheet = wb.ActiveSheet;
+
+            //Check
+            if (!"Số tờ khai".Equals(worksheet.Range["C4"].Value2) || !worksheet.Range["E2"].Value2.Contains("Tờ khai"))
+            {
+                MessageBox.Show("Hãy mở tờ khai để tạo invoice!");
+                return;
+            }
+            //find type number
+            int type = 1;
+            for (int i = 1; i < 10; i++) {
+                if (findInvoiceItems(("" + i).PadLeft(2), worksheet) != -1) {
+                    type = i;
+                } else break;
+            }
+
+            InvoiceModel invoice = new InvoiceModel(type);
+            //TO DO
+            string a;
+            invoice.number = "No: "+ worksheet.Range["R49"].Value2;
+            a = worksheet.Range["F8"].Value2;
+            invoice.date = a.Substring(0, 10);
+            a = worksheet.Range["H47"].Value2;
+            invoice.consignee = a.Substring(0, a.Length - a.IndexOf("TONZEX")).Replace("GIAO HANG CHO", "").Replace(" THEO CHI DINH CUA ", "");
+            invoice.portload = worksheet.Range[""].Value2;
+            invoice.destination = worksheet.Range[""].Value2;
+            invoice.sailing = worksheet.Range[""].Value2;
+
+            Copy_invoice_work_sheet(invoice);
+        }
+        private int findInvoiceItems(string n, Worksheet ws)
+        {
+            Range currentFind = null;
+            Range firstFind = null;
+
+            Range Items = ws.get_Range("C1", "C400");
+            // You should specify all these parameters every time you call this method,
+            // since they can be overridden in the user interface. 
+            currentFind = Items.Find(@"<" + n + ">", Type.Missing, XlFindLookIn.xlValues, XlLookAt.xlPart, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
+
+            while (currentFind != null)
+            {
+                // Keep track of the first range you find. 
+                if (firstFind == null)
+                {
+                    firstFind = currentFind;
+                }
+
+                // If you didn't move to a new range, you are done.
+                else if (currentFind.get_Address(XlReferenceStyle.xlA1)
+                      == firstFind.get_Address(XlReferenceStyle.xlA1))
+                {
+                    break;
+                }
+
+                currentFind.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Red);
+                currentFind.Font.Bold = true;
+
+                currentFind = Items.FindNext(currentFind);
+            }
+            return -1;
         }
     }
 }

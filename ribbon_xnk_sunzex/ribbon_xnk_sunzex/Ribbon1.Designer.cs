@@ -177,6 +177,7 @@
             this.button_invoice.Label = "Invoice";
             this.button_invoice.Name = "button_invoice";
             this.button_invoice.ShowImage = true;
+            this.button_invoice.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_invoice_Click);
             // 
             // button_shipping
             // 

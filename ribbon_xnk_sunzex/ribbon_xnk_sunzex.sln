@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30128.74
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ribbon_xnk_sunzex", "ribbon_xnk_sunzex\ribbon_xnk_sunzex.csproj", "{01B8D1F5-FD51-4EC0-B4C7-FAF8904B1B30}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01B8D1F5-FD51-4EC0-B4C7-FAF8904B1B30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01B8D1F5-FD51-4EC0-B4C7-FAF8904B1B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01B8D1F5-FD51-4EC0-B4C7-FAF8904B1B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01B8D1F5-FD51-4EC0-B4C7-FAF8904B1B30}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E120FB7C-60C7-4D9E-82FB-D80B2B18D1D5}
+	EndGlobalSection
+EndGlobal

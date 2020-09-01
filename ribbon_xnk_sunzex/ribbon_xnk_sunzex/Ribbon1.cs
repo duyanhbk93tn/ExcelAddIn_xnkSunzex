@@ -219,7 +219,7 @@ namespace ribbon_xnk_sunzex
         public class InvoiceModel
         {
             public int type;
-            public string number, date, consignee, portload, destination, sailing, sheetname, filename;
+            public string number, date, consignee, portload, destination, sailing, test, sheetname, filename;
             public string[] detail_name, detail_order, detail_PO, detail_quantity, detail_price;
             public InvoiceModel(int type)
             {
@@ -316,22 +316,27 @@ namespace ribbon_xnk_sunzex
                 MessageBox.Show("Hãy mở tờ khai để tạo invoice!");
                 return;
             }
+
             int type = 1;
-            string[] itemHeadValues = new string[10];
+            Range[] items = new Range[10];
+            Range invoiceItemFindRange = worksheet.Cells;
             for (int i = 1; i < 10; i++) {
-                if (findInvoiceItems(i, worksheet, itemHeadValues) != -1) {
-                    type = i;
-                } else break;
+                items[i] = invoiceItemFindRange.Find("<" + i.ToString("00") + ">");
+                if (items[i] is null) {
+                    break;
+                }
+                type = i;
             }
 
             InvoiceModel invoice = new InvoiceModel(type);
+            
             //TODO
             string a;
             invoice.number = "No: "+ worksheet.Range["R49"].Value2;
             a = worksheet.Range["F8"].Value2;
             invoice.date = a.Substring(0, 10);
             a = worksheet.Range["H47"].Value2;
-            invoice.consignee = a.Substring(0, a.Length - a.IndexOf("TONZEX")).Replace("GIAO HANG CHO ", "").Replace(" THEO CHI DINH CUA", "");
+            invoice.consignee = a.Substring(0, a.IndexOf("TONZEX")).Replace("GIAO HANG CHO ", "").Replace(" THEO CHI DINH CUA", "").Replace("G/H CHO ", "");
             invoice.portload = worksheet.Range["M44"].Value2;
             invoice.destination = worksheet.Range["M43"].Value2;
             a = worksheet.Range["I46"].Value2;
@@ -348,6 +353,19 @@ namespace ribbon_xnk_sunzex
                 invoice.filename = @"SUNZEX_INVOICE." + invoice.date.Substring(6, 4) + ".T" + invoice.date.Substring(3, 2);
             }
 
+            try
+            {
+                for (int i = 1; i <= type; i++)
+                {
+                    invoice.detail_name[i] = (worksheet.Range["F" +(items[i].Row + 3)].Value2.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
+                    invoice.detail_order[i] = worksheet.Range["F"+(items[i].Row + 3)].Value2.Substring(0, 3);
+                    invoice.detail_quantity[i] = worksheet.Range["Q" + (items[i].Row + 6)].Value2.Replace(".", "").Replace(",", ".");
+                    invoice.detail_price[i] = worksheet.Range["R" + (items[i].Row + 8)].Value2.Replace(".", "").Replace(",", ".");
+                }
+            }
+            catch (Exception ex){
+                MessageBox.Show(ex.Message);
+            }
             Copy_invoice_work_sheet(invoice);
         }
         private void Copy_invoice_work_sheet(InvoiceModel invoice)
@@ -404,12 +422,31 @@ namespace ribbon_xnk_sunzex
                 ws.Copy(sheet);
                 app.Workbooks[3].Sheets[1].Activate();
                 sheet = app.ActiveSheet;
+
                 sheet.Range["E7"].Value2 = invoice.number;
                 sheet.Range["I7"].Value2 = invoice.date;
                 sheet.Range["A10"].Value2 = invoice.consignee;
                 sheet.Range["A17"].Value2 = invoice.portload;
                 sheet.Range["C17"].Value2 = invoice.destination;
                 sheet.Range["C19"].Value2 = invoice.sailing;
+                sheet.Name = invoice.sheetname;
+
+                int row1 = 19;
+                for (int i = 1; i <= invoice.type; i++) {
+                    sheet.Range["A" + (row1 + i*3)].Value2 = invoice.detail_name[i];
+                    sheet.Range["A" + (row1 + i*3 + 1)].Value2 = @"ORDER: HSS90"+ invoice.detail_order[i];
+                    sheet.Range["A" + (row1 + i*3 + 2)].Value2 = invoice.detail_PO[i];
+                    sheet.Range["E" + (row1 + i*3)].Value2 = invoice.detail_quantity[i];
+                    sheet.Range["G" + (row1 + i*3)].Value2 = "0.15";
+                }
+                int row2 = row1 + 4 + 3*invoice.type;
+                for (int i = 1; i <= invoice.type; i++) {
+                    sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
+                    sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                    sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = invoice.detail_PO[i];
+                    sheet.Range["E" + (row2 + i * 3)].Value2 = invoice.detail_quantity[i];
+                    sheet.Range["G" + (row1 + i * 3)].Value2 = invoice.detail_price[i];
+                }
 
                 app.ActiveWorkbook.SaveAs(outputPath);
                 app.Workbooks[3].Close();
@@ -436,27 +473,6 @@ namespace ribbon_xnk_sunzex
                 app.Workbooks.Close();
                 app.Quit();
             }
-        }
-        private int findInvoiceItems(int n, Worksheet ws, string[] headValues)
-        {
-            Range currentFind = null;
-            Range firstFind = null;
-            Range Items = ws.get_Range("C100", "C500");
-            currentFind = Items.Find(@"<" + (""+n).PadLeft(2) + ">", Type.Missing, XlFindLookIn.xlValues, XlLookAt.xlPart, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, Type.Missing, Type.Missing);
-
-            while (currentFind != null) {
-                if (firstFind == null) {
-                    firstFind = currentFind;
-                }
-
-                // If you didn't move to a new range, you are done.
-                else if (currentFind.get_Address(XlReferenceStyle.xlA1)
-                      == firstFind.get_Address(XlReferenceStyle.xlA1)) {
-                    break;
-                }
-                currentFind = Items.FindNext(currentFind);
-            }
-            return -1;
         }
     }
 }

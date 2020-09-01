@@ -37,10 +37,14 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Ribbon1));
             this.tab_xnk = this.Factory.CreateRibbonTab();
             this.group1 = this.Factory.CreateRibbonGroup();
+            this.button5 = this.Factory.CreateRibbonButton();
             this.editBox_hoadonmau = this.Factory.CreateRibbonEditBox();
             this.separator2 = this.Factory.CreateRibbonSeparator();
+            this.button7 = this.Factory.CreateRibbonButton();
             this.editBox_thumucxuat = this.Factory.CreateRibbonEditBox();
             this.group_xnk = this.Factory.CreateRibbonGroup();
+            this.button_invoice = this.Factory.CreateRibbonButton();
+            this.button_shipping = this.Factory.CreateRibbonButton();
             this.editBox3 = this.Factory.CreateRibbonEditBox();
             this.checkBox_openAfter = this.Factory.CreateRibbonCheckBox();
             this.checkBox_xuatRieng = this.Factory.CreateRibbonCheckBox();
@@ -48,12 +52,8 @@
             this.editBox4 = this.Factory.CreateRibbonEditBox();
             this.editBox5 = this.Factory.CreateRibbonEditBox();
             this.checkBox1 = this.Factory.CreateRibbonCheckBox();
-            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.button5 = this.Factory.CreateRibbonButton();
-            this.button7 = this.Factory.CreateRibbonButton();
-            this.button_invoice = this.Factory.CreateRibbonButton();
-            this.button_shipping = this.Factory.CreateRibbonButton();
             this.button1 = this.Factory.CreateRibbonButton();
+            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.tab_xnk.SuspendLayout();
             this.group1.SuspendLayout();
             this.group_xnk.SuspendLayout();
@@ -78,8 +78,17 @@
             this.group1.Items.Add(this.editBox_thumucxuat);
             this.group1.Name = "group1";
             // 
+            // button5
+            // 
+            this.button5.Image = ((System.Drawing.Image)(resources.GetObject("button5.Image")));
+            this.button5.Label = "Hóa đơn mẫu";
+            this.button5.Name = "button5";
+            this.button5.ShowImage = true;
+            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click);
+            // 
             // editBox_hoadonmau
             // 
+            this.editBox_hoadonmau.Enabled = false;
             this.editBox_hoadonmau.Label = " ";
             this.editBox_hoadonmau.Name = "editBox_hoadonmau";
             this.editBox_hoadonmau.ShowLabel = false;
@@ -88,6 +97,14 @@
             // separator2
             // 
             this.separator2.Name = "separator2";
+            // 
+            // button7
+            // 
+            this.button7.Image = ((System.Drawing.Image)(resources.GetObject("button7.Image")));
+            this.button7.Label = "Thư mục xuất";
+            this.button7.Name = "button7";
+            this.button7.ShowImage = true;
+            this.button7.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button7_Click);
             // 
             // editBox_thumucxuat
             // 
@@ -105,6 +122,24 @@
             this.group_xnk.Items.Add(this.checkBox_xuatRieng);
             this.group_xnk.Label = "Xuất";
             this.group_xnk.Name = "group_xnk";
+            // 
+            // button_invoice
+            // 
+            this.button_invoice.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.button_invoice.Image = ((System.Drawing.Image)(resources.GetObject("button_invoice.Image")));
+            this.button_invoice.Label = "Invoice";
+            this.button_invoice.Name = "button_invoice";
+            this.button_invoice.ShowImage = true;
+            this.button_invoice.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_invoice_Click);
+            // 
+            // button_shipping
+            // 
+            this.button_shipping.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.button_shipping.Image = ((System.Drawing.Image)(resources.GetObject("button_shipping.Image")));
+            this.button_shipping.Label = "Shipping";
+            this.button_shipping.Name = "button_shipping";
+            this.button_shipping.ShowImage = true;
+            this.button_shipping.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_shipping_Click);
             // 
             // editBox3
             // 
@@ -153,40 +188,6 @@
             this.checkBox1.Enabled = false;
             this.checkBox1.Label = "Xuất file riêng";
             this.checkBox1.Name = "checkBox1";
-            // 
-            // button5
-            // 
-            this.button5.Image = ((System.Drawing.Image)(resources.GetObject("button5.Image")));
-            this.button5.Label = "Hóa đơn mẫu";
-            this.button5.Name = "button5";
-            this.button5.ShowImage = true;
-            this.button5.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button5_Click);
-            // 
-            // button7
-            // 
-            this.button7.Image = ((System.Drawing.Image)(resources.GetObject("button7.Image")));
-            this.button7.Label = "Thư mục xuất";
-            this.button7.Name = "button7";
-            this.button7.ShowImage = true;
-            this.button7.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button7_Click);
-            // 
-            // button_invoice
-            // 
-            this.button_invoice.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.button_invoice.Image = ((System.Drawing.Image)(resources.GetObject("button_invoice.Image")));
-            this.button_invoice.Label = "Invoice";
-            this.button_invoice.Name = "button_invoice";
-            this.button_invoice.ShowImage = true;
-            this.button_invoice.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_invoice_Click);
-            // 
-            // button_shipping
-            // 
-            this.button_shipping.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
-            this.button_shipping.Image = ((System.Drawing.Image)(resources.GetObject("button_shipping.Image")));
-            this.button_shipping.Label = "Shipping";
-            this.button_shipping.Name = "button_shipping";
-            this.button_shipping.ShowImage = true;
-            this.button_shipping.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_shipping_Click);
             // 
             // button1
             // 

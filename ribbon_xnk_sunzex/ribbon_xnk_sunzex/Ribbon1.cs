@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Tools.Ribbon;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace ribbon_xnk_sunzex
 {
@@ -20,7 +21,22 @@ namespace ribbon_xnk_sunzex
         private readonly string KEY_NAME_SUNZEX_outputPath = "SUNZEX_XNK_OUTPUT_PATH";
         private readonly string KEY_NAME_SUNZEX_openAfter = "SUNZEX_XNK_OPEN_AFTER";
         private readonly string KEY_NAME_SUNZEX_outSeparate = "SUNZEX_XNK_OUT_SEPARATE";
-        private void Ribbon1_Load(object sender, RibbonUIEventArgs e) {
+
+        CommonOpenFileDialog mDialog;
+
+        private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
+        {
+            mDialog = new CommonOpenFileDialog
+            {
+                EnsurePathExists = true,
+                EnsureFileExists = false,
+                AllowNonFileSystemItems = false,
+                DefaultFileName = "Chọn thư mục",
+                Title = "Chọn thư mục"
+            };
+            mDialog.Filters.Add(new CommonFileDialogFilter("Excel Worksheets ", "xlsx,xls"));
+            mDialog.ShowHiddenItems = true;
+
             sTemplatePath = ReadFromRegistry(KEY_NAME_SUNZEX_templatePath, "");
             editBox_hoadonmau.Text = sTemplatePath;
 
@@ -32,31 +48,39 @@ namespace ribbon_xnk_sunzex
             checkBox_xuatRieng.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_outSeparate, "0"));
         }
 
-        private void button5_Click(object sender, RibbonControlEventArgs e) {
-            folderBrowserDialog1.SelectedPath = editBox_hoadonmau.Text;
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK) {
-                editBox_hoadonmau.Text = folderBrowserDialog1.SelectedPath;
+        private void button5_Click(object sender, RibbonControlEventArgs e)
+        {
+            mDialog.InitialDirectory = editBox_hoadonmau.Text;
+            if (mDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                editBox_hoadonmau.Text = Directory.Exists(mDialog.FileName) ? mDialog.FileName : Path.GetDirectoryName(mDialog.FileName);
                 StoreInRegistry(KEY_NAME_SUNZEX_templatePath, editBox_hoadonmau.Text);
                 sTemplatePath = editBox_hoadonmau.Text;
             }
         }
 
-        public void StoreInRegistry(string keyName, string value) {
+        public void StoreInRegistry(string keyName, string value)
+        {
             RegistryKey rootKey = Registry.CurrentUser;
             string registryPath = @"Software\Sunzex\XNK_ribbon";
-            using (RegistryKey rk = rootKey.CreateSubKey(registryPath)) {
+            using (RegistryKey rk = rootKey.CreateSubKey(registryPath))
+            {
                 rk.SetValue(keyName, value, RegistryValueKind.String);
             }
         }
-        public string ReadFromRegistry(string keyName, string defaultValue) {
+        public string ReadFromRegistry(string keyName, string defaultValue)
+        {
             RegistryKey rootKey = Registry.CurrentUser;
             string registryPath = @"Software\Sunzex\XNK_ribbon";
-            using (RegistryKey rk = rootKey.OpenSubKey(registryPath, false)) {
-                if (rk == null) {
+            using (RegistryKey rk = rootKey.OpenSubKey(registryPath, false))
+            {
+                if (rk == null)
+                {
                     return defaultValue;
                 }
                 var res = rk.GetValue(keyName, defaultValue);
-                if (res == null) {
+                if (res == null)
+                {
                     return defaultValue;
                 }
                 return res.ToString();
@@ -65,9 +89,10 @@ namespace ribbon_xnk_sunzex
 
         private void button7_Click(object sender, RibbonControlEventArgs e)
         {
-            folderBrowserDialog1.SelectedPath = editBox_thumucxuat.Text;
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK) {
-                editBox_thumucxuat.Text = folderBrowserDialog1.SelectedPath;
+            mDialog.InitialDirectory = editBox_thumucxuat.Text;
+            if (mDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                editBox_hoadonmau.Text = Directory.Exists(mDialog.FileName) ? mDialog.FileName : Path.GetDirectoryName(mDialog.FileName);
                 StoreInRegistry(KEY_NAME_SUNZEX_outputPath, editBox_thumucxuat.Text);
                 sOutputPath = editBox_thumucxuat.Text;
             }
@@ -79,15 +104,16 @@ namespace ribbon_xnk_sunzex
             Worksheet worksheet = wb.ActiveSheet;
 
             //Check
-            if (!"Số tờ khai".Equals(worksheet.Range["C4"].Value2) || !worksheet.Range["E2"].Value2.Contains("Tờ khai")) {
+            if (!"Số tờ khai".Equals(worksheet.Range["C4"].Value2) || !worksheet.Range["E2"].Value2.Contains("Tờ khai"))
+            {
                 MessageBox.Show("Hãy mở tờ khai để tạo shipping");
                 return;
             }
             ShippingModel ship = new ShippingModel();
             string a;
-            a = worksheet.Range["F8"].Value2; 
+            a = worksheet.Range["F8"].Value2;
             ship.date = a.Substring(0, 10);
-            a = worksheet.Range["I46"].Value2; 
+            a = worksheet.Range["I46"].Value2;
             ship.shipment = a.Substring(3, 3) + a.Substring(0, 3) + a.Substring(6, 4);
             a = worksheet.Range["L6"].Value2;
             ship.transport = "BY " + (("" + a[a.Length - 1]).Equals("3") || ("" + a[a.Length - 1]).Equals("2") ? "SEA" : ("" + a[a.Length - 1]).Equals("4") ? "TRUCK" : ("" + a[a.Length - 1]).Equals("1") ? "AIR" : "OTHER");
@@ -109,16 +135,19 @@ namespace ribbon_xnk_sunzex
 
             ship.gross = worksheet.Range["H41"].Value2;
 
-            if (checkBox_xuatRieng.Checked) {
+            if (checkBox_xuatRieng.Checked)
+            {
                 ship.filename = @"SUNZEX_SHIPING." + worksheet.Range["R49"].Value2.Replace("/", "");
                 ship.sheetname = worksheet.Range["R49"].Value2.Replace("/", "");
-            } else {
+            }
+            else
+            {
                 a = ship.comodity.Substring(ship.comodity.IndexOf(@":") + 6, 2) + "." + ship.comodity.Substring(ship.comodity.IndexOf(@":") + 8, 3);
                 ship.sheetname = a.Replace("/", "");
 
                 ship.filename = @"SUNZEX_SHIPING." + ship.date.Substring(6, 4) + ".T" + ship.date.Substring(3, 2);
             }
-            
+
             Copy_shipping_work_sheet(ship);
         }
         private void Copy_shipping_work_sheet(ShippingModel ship)
@@ -153,16 +182,20 @@ namespace ribbon_xnk_sunzex
 
                 //check exist
                 bool found = false;
-                foreach (_Worksheet aSheet in app.Workbooks[3].Sheets) {
-                    if (ship.sheetname.Equals(aSheet.Name)) {
+                foreach (_Worksheet aSheet in app.Workbooks[3].Sheets)
+                {
+                    if (ship.sheetname.Equals(aSheet.Name))
+                    {
                         found = true;
                         break;
                     }
                 }
-                if (found) {
+                if (found)
+                {
                     throw new IOException("Shipping " + ship.sheetname + " đã tồn tại, không thể tạo mới!");
                 }
-                if (IsOpenedWB_ByName(ship.filename+".xlsx")){
+                if (IsOpenedWB_ByName(ship.filename + ".xlsx"))
+                {
                     throw new IOException("File " + ship.filename + " đang được mở nên không thể ghi đè.  Hãy đóng file và thử tạo lại shipping! ");
                 }
 
@@ -190,9 +223,11 @@ namespace ribbon_xnk_sunzex
                 app.Workbooks[1].Close();
                 app.Workbooks.Close();
                 app.Quit();
-                if (checkBox_openAfter.Checked) {
+                if (checkBox_openAfter.Checked)
+                {
                     OpenFile(outputPath);
-                } else MessageBox.Show("Shipping " + ship.sheetname + " tạo thành công!");
+                }
+                else MessageBox.Show("Shipping " + ship.sheetname + " tạo thành công!");
             }
             catch (IOException ex)
             {
@@ -204,7 +239,8 @@ namespace ribbon_xnk_sunzex
                 app.Workbooks.Close();
                 app.Quit();
             }
-            finally {
+            finally
+            {
                 app.Workbooks.Close();
                 app.Quit();
             }
@@ -237,8 +273,8 @@ namespace ribbon_xnk_sunzex
             public ShippingModel() { }
         }
 
-//---------------------  WBHelper   ---------------------
-//-------------------------------------------------------
+        //---------------------  WBHelper   ---------------------
+        //-------------------------------------------------------
         public static bool IsOpenedWB_ByName(string wbName)
         {
             return (GetOpenedWB_ByName(wbName) != null);
@@ -286,15 +322,16 @@ namespace ribbon_xnk_sunzex
             return roList;
         }
 
-        public struct RunningObject {
+        public struct RunningObject
+        {
             public string Path;
             public object Obj;
         }
 
         [System.Runtime.InteropServices.DllImport("ole32.dll")]
         static extern void CreateBindCtx(int a, out IBindCtx b);
-//-------------------------------------------------------
-//-------------------End of WBHelper---------------------
+        //-------------------------------------------------------
+        //-------------------End of WBHelper---------------------
 
         private void CheckBox3_Click(object sender, RibbonControlEventArgs e)
         {
@@ -312,7 +349,8 @@ namespace ribbon_xnk_sunzex
             Worksheet worksheet = wb.ActiveSheet;
 
             //Check
-            if (!"Số tờ khai".Equals(worksheet.Range["C4"].Value2) || !worksheet.Range["E2"].Value2.Contains("Tờ khai")) {
+            if (!"Số tờ khai".Equals(worksheet.Range["C4"].Value2) || !worksheet.Range["E2"].Value2.Contains("Tờ khai"))
+            {
                 MessageBox.Show("Hãy mở tờ khai để tạo invoice!");
                 return;
             }
@@ -320,19 +358,21 @@ namespace ribbon_xnk_sunzex
             int type = 1;
             Range[] items = new Range[10];
             Range invoiceItemFindRange = worksheet.Cells;
-            for (int i = 1; i < 10; i++) {
+            for (int i = 1; i < 10; i++)
+            {
                 items[i] = invoiceItemFindRange.Find("<" + i.ToString("00") + ">");
-                if (items[i] is null) {
+                if (items[i] is null)
+                {
                     break;
                 }
                 type = i;
             }
 
             InvoiceModel invoice = new InvoiceModel(type);
-            
+
             //TODO
             string a;
-            invoice.number = "No: "+ worksheet.Range["R49"].Value2;
+            invoice.number = "No: " + worksheet.Range["R49"].Value2;
             a = worksheet.Range["F8"].Value2;
             invoice.date = a.Substring(0, 10);
             a = worksheet.Range["H47"].Value2;
@@ -349,7 +389,9 @@ namespace ribbon_xnk_sunzex
             if (checkBox_xuatRieng.Checked)
             {
                 invoice.filename = @"SUNZEX_" + a;
-            } else {
+            }
+            else
+            {
                 invoice.filename = @"SUNZEX_INVOICE." + invoice.date.Substring(6, 4) + ".T" + invoice.date.Substring(3, 2);
             }
 
@@ -357,13 +399,14 @@ namespace ribbon_xnk_sunzex
             {
                 for (int i = 1; i <= type; i++)
                 {
-                    invoice.detail_name[i] = (worksheet.Range["F" +(items[i].Row + 3)].Value2.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
-                    invoice.detail_order[i] = worksheet.Range["F"+(items[i].Row + 3)].Value2.Substring(0, 3);
+                    invoice.detail_name[i] = (worksheet.Range["F" + (items[i].Row + 3)].Value2.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
+                    invoice.detail_order[i] = worksheet.Range["F" + (items[i].Row + 3)].Value2.Substring(0, 3);
                     invoice.detail_quantity[i] = worksheet.Range["Q" + (items[i].Row + 6)].Value2.Replace(".", "").Replace(",", ".");
                     invoice.detail_price[i] = worksheet.Range["R" + (items[i].Row + 8)].Value2.Replace(".", "").Replace(",", ".");
                 }
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 MessageBox.Show(ex.Message);
             }
             Copy_invoice_work_sheet(invoice);
@@ -432,15 +475,17 @@ namespace ribbon_xnk_sunzex
                 sheet.Name = invoice.sheetname;
 
                 int row1 = 19;
-                for (int i = 1; i <= invoice.type; i++) {
-                    sheet.Range["A" + (row1 + i*3)].Value2 = invoice.detail_name[i];
-                    sheet.Range["A" + (row1 + i*3 + 1)].Value2 = @"ORDER: HSS90"+ invoice.detail_order[i];
-                    sheet.Range["A" + (row1 + i*3 + 2)].Value2 = invoice.detail_PO[i];
-                    sheet.Range["E" + (row1 + i*3)].Value2 = invoice.detail_quantity[i];
-                    sheet.Range["G" + (row1 + i*3)].Value2 = "0.15";
+                for (int i = 1; i <= invoice.type; i++)
+                {
+                    sheet.Range["A" + (row1 + i * 3)].Value2 = invoice.detail_name[i];
+                    sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                    sheet.Range["A" + (row1 + i * 3 + 2)].Value2 = invoice.detail_PO[i];
+                    sheet.Range["E" + (row1 + i * 3)].Value2 = invoice.detail_quantity[i];
+                    sheet.Range["G" + (row1 + i * 3)].Value2 = "0.15";
                 }
-                int row2 = row1 + 4 + 3*invoice.type;
-                for (int i = 1; i <= invoice.type; i++) {
+                int row2 = row1 + 4 + 3 * invoice.type;
+                for (int i = 1; i <= invoice.type; i++)
+                {
                     sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
                     sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
                     sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = invoice.detail_PO[i];
@@ -458,11 +503,11 @@ namespace ribbon_xnk_sunzex
                 {
                     OpenFile(outputPath);
                 }
-                else MessageBox.Show("Shipping " + invoice.sheetname + " tạo thành công!");
+                else MessageBox.Show("Invoice " + invoice.sheetname + " tạo thành công!");
             }
             catch (IOException ex)
             {
-                MessageBox.Show("Shipping " + invoice.sheetname + " đã tồn tại, không thể tạo mới! " + ex.Message);
+                MessageBox.Show(ex.Message);
             }
             catch (Exception ex)
             {

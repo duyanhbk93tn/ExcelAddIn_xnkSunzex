@@ -45,15 +45,14 @@
             this.group_xnk = this.Factory.CreateRibbonGroup();
             this.button_invoice = this.Factory.CreateRibbonButton();
             this.button_shipping = this.Factory.CreateRibbonButton();
-            this.editBox3 = this.Factory.CreateRibbonEditBox();
             this.checkBox_openAfter = this.Factory.CreateRibbonCheckBox();
             this.checkBox_xuatRieng = this.Factory.CreateRibbonCheckBox();
+            this.checkBox2 = this.Factory.CreateRibbonCheckBox();
             this.group2 = this.Factory.CreateRibbonGroup();
             this.editBox4 = this.Factory.CreateRibbonEditBox();
             this.editBox5 = this.Factory.CreateRibbonEditBox();
             this.checkBox1 = this.Factory.CreateRibbonCheckBox();
             this.button1 = this.Factory.CreateRibbonButton();
-            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.tab_xnk.SuspendLayout();
             this.group1.SuspendLayout();
             this.group_xnk.SuspendLayout();
@@ -88,7 +87,6 @@
             // 
             // editBox_hoadonmau
             // 
-            this.editBox_hoadonmau.Enabled = false;
             this.editBox_hoadonmau.Label = " ";
             this.editBox_hoadonmau.Name = "editBox_hoadonmau";
             this.editBox_hoadonmau.ShowLabel = false;
@@ -117,9 +115,9 @@
             // 
             this.group_xnk.Items.Add(this.button_invoice);
             this.group_xnk.Items.Add(this.button_shipping);
-            this.group_xnk.Items.Add(this.editBox3);
             this.group_xnk.Items.Add(this.checkBox_openAfter);
             this.group_xnk.Items.Add(this.checkBox_xuatRieng);
+            this.group_xnk.Items.Add(this.checkBox2);
             this.group_xnk.Label = "Xuất";
             this.group_xnk.Name = "group_xnk";
             // 
@@ -141,13 +139,6 @@
             this.button_shipping.ShowImage = true;
             this.button_shipping.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_shipping_Click);
             // 
-            // editBox3
-            // 
-            this.editBox3.Enabled = false;
-            this.editBox3.Label = "Packing list";
-            this.editBox3.Name = "editBox3";
-            this.editBox3.Text = null;
-            // 
             // checkBox_openAfter
             // 
             this.checkBox_openAfter.Label = "Mở file sau khi tạo";
@@ -156,9 +147,15 @@
             // 
             // checkBox_xuatRieng
             // 
-            this.checkBox_xuatRieng.Label = "Xuất file riêng";
+            this.checkBox_xuatRieng.Label = "Xuất file riêng (k theo tháng)";
             this.checkBox_xuatRieng.Name = "checkBox_xuatRieng";
             this.checkBox_xuatRieng.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.checkBox_xuatRieng_Click);
+            // 
+            // checkBox2
+            // 
+            this.checkBox2.Label = "Tự nhập số PO cho invoice";
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.checkBox_xuatRieng_Click);
             // 
             // group2
             // 
@@ -172,14 +169,14 @@
             // editBox4
             // 
             this.editBox4.Enabled = false;
-            this.editBox4.Label = "List TK";
+            this.editBox4.Label = "Mục chứa các tờ khai";
             this.editBox4.Name = "editBox4";
             this.editBox4.Text = null;
             // 
             // editBox5
             // 
             this.editBox5.Enabled = false;
-            this.editBox5.Label = "Packinglist";
+            this.editBox5.Label = "Thư mục Packinglist";
             this.editBox5.Name = "editBox5";
             this.editBox5.Text = null;
             // 
@@ -223,20 +220,19 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button_invoice;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button_shipping;
-        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBox3;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_xuatRieng;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group2;
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBox4;
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBox5;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button1;
-        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button5;
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBox_hoadonmau;
         internal Microsoft.Office.Tools.Ribbon.RibbonSeparator separator2;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button7;
         internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBox_thumucxuat;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_openAfter;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox2;
     }
 
     partial class ThisRibbonCollection

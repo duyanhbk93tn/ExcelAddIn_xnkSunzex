@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Deployment.Application;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
 using Microsoft.Office.Tools.Ribbon;
@@ -21,6 +21,7 @@ namespace ribbon_xnk_sunzex
         private readonly string KEY_NAME_SUNZEX_outputPath = "SUNZEX_XNK_OUTPUT_PATH";
         private readonly string KEY_NAME_SUNZEX_openAfter = "SUNZEX_XNK_OPEN_AFTER";
         private readonly string KEY_NAME_SUNZEX_outSeparate = "SUNZEX_XNK_OUT_SEPARATE";
+        private readonly string KEY_NAME_SUNZEX_PKL = "SUNZEX_XNK_PKL";
 
         CommonOpenFileDialog mDialog;
 
@@ -42,6 +43,8 @@ namespace ribbon_xnk_sunzex
 
             sOutputPath = ReadFromRegistry(KEY_NAME_SUNZEX_outputPath, sTemplatePath);
             editBox_thumucxuat.Text = sOutputPath;
+
+            checkBox_PKL.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_PKL, "1"));
 
             checkBox_openAfter.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_openAfter, "1"));
 
@@ -92,7 +95,7 @@ namespace ribbon_xnk_sunzex
             mDialog.InitialDirectory = editBox_thumucxuat.Text;
             if (mDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                editBox_hoadonmau.Text = Directory.Exists(mDialog.FileName) ? mDialog.FileName : Path.GetDirectoryName(mDialog.FileName);
+                editBox_thumucxuat.Text = Directory.Exists(mDialog.FileName) ? mDialog.FileName : Path.GetDirectoryName(mDialog.FileName);
                 StoreInRegistry(KEY_NAME_SUNZEX_outputPath, editBox_thumucxuat.Text);
                 sOutputPath = editBox_thumucxuat.Text;
             }
@@ -218,9 +221,10 @@ namespace ribbon_xnk_sunzex
                 //TODO: Handle saves option "No"/"Cancel"
                 app.ActiveWorkbook.SaveAs(outputPath);
 
-                app.Workbooks[3].Close();
-                app.Workbooks[2].Close();
-                app.Workbooks[1].Close();
+                object misValue = System.Reflection.Missing.Value;
+                app.Workbooks[3].Close(false, misValue, misValue);
+                app.Workbooks[2].Close(false, misValue, misValue);
+                app.Workbooks[1].Close(false, misValue, misValue);
                 app.Workbooks.Close();
                 app.Quit();
                 if (checkBox_openAfter.Checked)
@@ -251,20 +255,22 @@ namespace ribbon_xnk_sunzex
             fileopener.StartInfo.FileName = "explorer";
             fileopener.StartInfo.Arguments = "\"" + path + "\"";
             fileopener.Start();
+            fileopener.Close();
         }
         public class InvoiceModel
         {
-            public int type;
+            public int type, pkl_num;
             public string number, date, consignee, portload, destination, sailing, test, sheetname, filename;
-            public string[] detail_name, detail_order, detail_PO, detail_quantity, detail_price;
+            public string[] detail_name, detail_order, detail_PO, detail_quantity, detail_price, detail_size;
             public InvoiceModel(int type)
             {
                 this.type = type;
-                detail_name = new string[10];
-                detail_order = new string[10];
-                detail_PO = new string[10];
-                detail_quantity = new string[10];
-                detail_price = new string[10];
+                detail_name = new string[type + 1];
+                detail_order = new string[type + 1];
+                detail_PO = new string[type + 1];
+                detail_quantity = new string[type + 1];
+                detail_price = new string[type + 1];
+                detail_size = new string[type + 1];
             }
         }
         public class ShippingModel
@@ -342,6 +348,10 @@ namespace ribbon_xnk_sunzex
         {
             StoreInRegistry(KEY_NAME_SUNZEX_outSeparate, checkBox_xuatRieng.Checked ? "1" : "0");
         }
+        private void checkBox_PKL_Click(object sender, RibbonControlEventArgs e)
+        {
+            StoreInRegistry(KEY_NAME_SUNZEX_PKL, checkBox_PKL.Checked ? "1" : "0");
+        }
 
         private void button_invoice_Click(object sender, RibbonControlEventArgs e)
         {
@@ -401,6 +411,9 @@ namespace ribbon_xnk_sunzex
                 {
                     invoice.detail_name[i] = (worksheet.Range["F" + (items[i].Row + 3)].Value2.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
                     invoice.detail_order[i] = worksheet.Range["F" + (items[i].Row + 3)].Value2.Substring(0, 3);
+                    a = worksheet.Range["F" + (items[i].Row + 3)].Value2;
+                    a = a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
+                    invoice.detail_size[i] = a.Replace(" ", "").Replace("X", "-").Replace("x", "-").Replace("*", "-").Replace("C", "").Replace("c", "").Replace("M", "").Replace("m", "").Replace(",", ".");
                     invoice.detail_quantity[i] = worksheet.Range["Q" + (items[i].Row + 6)].Value2.Replace(".", "").Replace(",", ".");
                     invoice.detail_price[i] = worksheet.Range["R" + (items[i].Row + 8)].Value2.Replace(".", "").Replace(",", ".");
                 }
@@ -409,6 +422,96 @@ namespace ribbon_xnk_sunzex
             {
                 MessageBox.Show(ex.Message);
             }
+
+            if (checkBox_PKL.Checked) {
+                Microsoft.Office.Interop.Excel.Application pklapp = Globals.ThisAddIn.Application;
+                try
+                {
+                    CommonOpenFileDialog aDialog = new CommonOpenFileDialog
+                    {
+                        EnsurePathExists = true,
+                        EnsureFileExists = true,
+                        AllowNonFileSystemItems = false,
+                        DefaultFileName = "Mở packing list",
+                        Title = "Tự đánh số PO cho invoice từ packing list"
+                    };
+                    aDialog.DefaultDirectory = sOutputPath;
+                    aDialog.Filters.Add(new CommonFileDialogFilter("Excel Worksheets", "xlsx,xls"));
+                    aDialog.ShowHiddenItems = true;
+
+                    if (aDialog.ShowDialog() == CommonFileDialogResult.Ok)
+                    {
+                        pklapp = new Microsoft.Office.Interop.Excel.Application();
+                        pklapp.Visible = true;
+                        pklapp.Workbooks.Add(aDialog.FileName);
+                        //pklapp.Workbooks[1].Sheets[1].Activate();
+                        _Worksheet sheet = pklapp.ActiveSheet;
+
+                        Range POitems = sheet.Cells;
+                        Range aPOitems;
+                        aPOitems = POitems.Find("Folder size");
+                        Range firstResult = aPOitems;
+                        int max = 0;
+                        while (!(aPOitems is null) && max++ < 20)
+                        {
+                            a = sheet.Range["A" + aPOitems.Row].Value2;
+                            //throw new Exception("aPOitems.Row = "+ aPOitems.Row+" test valuee: " + a);
+                            a = a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
+                            a = a.Replace(" ", "").Replace("X", "-").Replace("x", "-");
+                            a = a.Replace("*", "-").Replace("C", "").Replace("c", "");
+                            a = a.Replace("M", "").Replace("m", "").Replace(",", ".");
+                            for (int i = 1; i <= type; i++)
+                            {
+                                string b;
+                                if (a.Equals(invoice.detail_size[i]))
+                                {
+                                    b = sheet.Range["E" + (aPOitems.Row + 3)].Value2.Replace("PO#", "").Replace(" ", "");
+                                    if (invoice.detail_PO[i] != null && invoice.detail_PO[i].Length > 0)
+                                    {
+                                        if (!invoice.detail_PO[i].Contains(b))
+                                        {
+                                            if (!invoice.detail_PO[i].Contains(b.Substring(0,4)))
+                                            {
+                                                int k;
+                                                for (k = 4; i < b.Length; k++) {
+                                                    if (!invoice.detail_PO[i].Contains(b.Substring(0, k))) break;
+                                                }
+                                                string c = b.Substring(0, k - 1);
+                                                b = b.Substring(k, b.Length - k);
+
+                                                invoice.detail_PO[i].Insert(invoice.detail_PO[i].IndexOf(c)+c.Length, (@"/" + b));
+                                            }
+                                            else {
+                                                invoice.detail_PO[i] += ("," + b);
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        invoice.detail_PO[i] = b;
+                                    }
+                                    break;
+                                }
+                            }
+
+                            aPOitems = POitems.FindNext(aPOitems);
+                            if (aPOitems.Address == firstResult.Address) aPOitems = null;
+                        }
+                        object misValue = System.Reflection.Missing.Value;
+                        pklapp.Workbooks[1].Close(false, misValue, misValue);
+                        pklapp.Quit();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show((checkBox_PKL.Checked ? "checkBox_PKL.Checked: " : "") + ex.ToString());
+                    object misValue = System.Reflection.Missing.Value;
+                    pklapp.Workbooks[1].Close(false, misValue, misValue);
+                    pklapp.Quit();
+                }
+            }
+
             Copy_invoice_work_sheet(invoice);
         }
         private void Copy_invoice_work_sheet(InvoiceModel invoice)
@@ -474,29 +577,38 @@ namespace ribbon_xnk_sunzex
                 sheet.Range["C19"].Value2 = invoice.sailing;
                 sheet.Name = invoice.sheetname;
 
-                int row1 = 19;
-                for (int i = 1; i <= invoice.type; i++)
+                if (invoice.type <= 3)
                 {
-                    sheet.Range["A" + (row1 + i * 3)].Value2 = invoice.detail_name[i];
-                    sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
-                    sheet.Range["A" + (row1 + i * 3 + 2)].Value2 = invoice.detail_PO[i];
-                    sheet.Range["E" + (row1 + i * 3)].Value2 = invoice.detail_quantity[i];
-                    sheet.Range["G" + (row1 + i * 3)].Value2 = "0.15";
+                    int row1 = 19;
+                    for (int i = 1; i <= invoice.type; i++)
+                    {
+                        sheet.Range["A" + (row1 + i * 3)].Value2 = invoice.detail_name[i];
+                        sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row1 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
+                        sheet.Range["E" + (row1 + i * 3)].Value2 = invoice.detail_quantity[i];
+                        sheet.Range["G" + (row1 + i * 3)].Value2 = "0.03";
+                    }
+                    int row2 = row1 + 4 + 3 * invoice.type;
+                    for (int i = 1; i <= invoice.type; i++)
+                    {
+                        sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
+                        sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
+                        sheet.Range["E" + (row2 + i * 3)].Value2 = invoice.detail_quantity[i];
+                        sheet.Range["G" + (row2 + i * 3)].Value2 = invoice.detail_price[i];
+                    }
                 }
-                int row2 = row1 + 4 + 3 * invoice.type;
-                for (int i = 1; i <= invoice.type; i++)
-                {
-                    sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
-                    sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
-                    sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = invoice.detail_PO[i];
-                    sheet.Range["E" + (row2 + i * 3)].Value2 = invoice.detail_quantity[i];
-                    sheet.Range["G" + (row1 + i * 3)].Value2 = invoice.detail_price[i];
+                else { 
+                //
+
                 }
+                
 
                 app.ActiveWorkbook.SaveAs(outputPath);
-                app.Workbooks[3].Close();
-                app.Workbooks[2].Close();
-                app.Workbooks[1].Close();
+                object misValue = System.Reflection.Missing.Value;
+                app.Workbooks[3].Close(false, misValue, misValue);
+                app.Workbooks[2].Close(false, misValue, misValue);
+                app.Workbooks[1].Close(false, misValue, misValue);
                 app.Workbooks.Close();
                 app.Quit();
                 if (checkBox_openAfter.Checked)
@@ -515,8 +627,23 @@ namespace ribbon_xnk_sunzex
             }
             finally
             {
+                object misValue = System.Reflection.Missing.Value;
+                app.Workbooks[1].Close(false, misValue, misValue);
                 app.Workbooks.Close();
                 app.Quit();
+            }
+        }
+
+        private void button2_Click(object sender, RibbonControlEventArgs e)
+        {
+            MessageBox.Show("Bộ công cụ XNK cty Sunzex. Phiên bản " + Version.Major.ToString() + "." + Version.Minor.ToString() + "." + Version.Build.ToString() + "." + Version.Revision.ToString() + " Liên hệ & tác giả: Bùi Khánh Duy Anh - email: shipping.anh@sunzex.com");
+        }
+
+        public Version Version
+        {
+            get
+            {
+                return ApplicationDeployment.CurrentDeployment.CurrentVersion;
             }
         }
     }

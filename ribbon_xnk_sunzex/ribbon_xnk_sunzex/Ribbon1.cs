@@ -598,8 +598,24 @@ namespace ribbon_xnk_sunzex
                         sheet.Range["G" + (row2 + i * 3)].Value2 = invoice.detail_price[i];
                     }
                 }
-                else { 
-                //
+                else if (invoice.type <= 5)
+                {
+                    int row1 = 20;
+                    for (int i = 1; i <= invoice.type; i++)
+                    {
+                        sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row1 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
+                        sheet.Range["E" + (row1 + i * 2)].Value2 = invoice.detail_quantity[i];
+                        sheet.Range["G" + (row1 + i * 2)].Value2 = "0.03";
+                    }
+                    int row2 = row1 + 4 + 2 * invoice.type;
+                    for (int i = 1; i <= invoice.type; i++)
+                    {
+                        sheet.Range["A" + (row2 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row2 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
+                        sheet.Range["E" + (row2 + i * 2)].Value2 = invoice.detail_quantity[i];
+                        sheet.Range["G" + (row2 + i * 2)].Value2 = invoice.detail_price[i];
+                    }
 
                 }
                 
@@ -645,6 +661,11 @@ namespace ribbon_xnk_sunzex
             {
                 return ApplicationDeployment.CurrentDeployment.CurrentVersion;
             }
+        }
+
+        private void button3_Click(object sender, RibbonControlEventArgs e)
+        {
+
         }
     }
 }

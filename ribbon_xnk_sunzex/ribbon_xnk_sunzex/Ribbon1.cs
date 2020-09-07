@@ -13,7 +13,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace ribbon_xnk_sunzex
 {
-    public partial class Ribbon1
+    public partial class xnk_ribbon
     {
         string sTemplatePath = "";
         string sOutputPath = "";
@@ -470,28 +470,21 @@ namespace ribbon_xnk_sunzex
                                     {
                                         if (!invoice.detail_PO[i].Contains(b))
                                         {
-                                            if (!invoice.detail_PO[i].Contains(b.Substring(0,4)))
+                                            string c = b.Substring(0, 5);
+                                            if (invoice.detail_PO[i].Contains(c))
                                             {
-                                                int k;
-                                                for (k = 4; i < b.Length; k++) {
-                                                    if (!invoice.detail_PO[i].Contains(b.Substring(0, k))) break;
-                                                }
-                                                string c = b.Substring(0, k - 1);
-                                                b = b.Substring(k, b.Length - k);
-
-                                                invoice.detail_PO[i].Insert(invoice.detail_PO[i].IndexOf(c)+c.Length, (@"/" + b));
+                                                //throw new Exception("b = " + b + " c: " + c);
+                                                invoice.detail_PO[i] = invoice.detail_PO[i].Insert(invoice.detail_PO[i].IndexOf(c)+5, (b.Substring(5, b.Length - 5) + "/"));
                                             }
                                             else {
                                                 invoice.detail_PO[i] += ("," + b);
                                             }
                                         }
-                                        break;
                                     }
                                     else
                                     {
                                         invoice.detail_PO[i] = b;
                                     }
-                                    break;
                                 }
                             }
 
@@ -583,7 +576,7 @@ namespace ribbon_xnk_sunzex
                     for (int i = 1; i <= invoice.type; i++)
                     {
                         sheet.Range["A" + (row1 + i * 3)].Value2 = invoice.detail_name[i];
-                        sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
                         sheet.Range["A" + (row1 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row1 + i * 3)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row1 + i * 3)].Value2 = "0.03";
@@ -592,7 +585,7 @@ namespace ribbon_xnk_sunzex
                     for (int i = 1; i <= invoice.type; i++)
                     {
                         sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
-                        sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
                         sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row2 + i * 3)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row2 + i * 3)].Value2 = invoice.detail_price[i];
@@ -603,7 +596,7 @@ namespace ribbon_xnk_sunzex
                     int row1 = 20;
                     for (int i = 1; i <= invoice.type; i++)
                     {
-                        sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
                         sheet.Range["A" + (row1 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row1 + i * 2)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row1 + i * 2)].Value2 = "0.03";
@@ -616,9 +609,7 @@ namespace ribbon_xnk_sunzex
                         sheet.Range["E" + (row2 + i * 2)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row2 + i * 2)].Value2 = invoice.detail_price[i];
                     }
-
                 }
-                
 
                 app.ActiveWorkbook.SaveAs(outputPath);
                 object misValue = System.Reflection.Missing.Value;
@@ -663,9 +654,5 @@ namespace ribbon_xnk_sunzex
             }
         }
 
-        private void button3_Click(object sender, RibbonControlEventArgs e)
-        {
-
-        }
     }
 }

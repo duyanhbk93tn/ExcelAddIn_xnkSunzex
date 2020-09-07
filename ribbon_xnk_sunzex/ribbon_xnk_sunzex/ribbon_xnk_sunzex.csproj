@@ -30,8 +30,8 @@
     <DefineConstants>VSTO40</DefineConstants>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <PublishUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_sunzex\publish\</PublishUrl>
-    <InstallUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_sunzex\install\</InstallUrl>
+    <PublishUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_tisu\publish\</PublishUrl>
+    <InstallUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_tisu\install\</InstallUrl>
     <TargetCulture>en</TargetCulture>
     <ApplicationVersion>1.0.0.6</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>

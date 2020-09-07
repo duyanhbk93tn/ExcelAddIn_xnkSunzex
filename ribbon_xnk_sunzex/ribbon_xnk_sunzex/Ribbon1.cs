@@ -22,7 +22,9 @@ namespace ribbon_xnk_sunzex
         private readonly string KEY_NAME_SUNZEX_openAfter = "SUNZEX_XNK_OPEN_AFTER";
         private readonly string KEY_NAME_SUNZEX_outSeparate = "SUNZEX_XNK_OUT_SEPARATE";
         private readonly string KEY_NAME_SUNZEX_PKL = "SUNZEX_XNK_PKL";
+        private readonly string KEY_NAME_SUNZEX_COMPANY = "SUNZEX_XNK_COMPANY";
 
+        string mCompanyName = "";
         CommonOpenFileDialog mDialog;
 
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
@@ -43,12 +45,13 @@ namespace ribbon_xnk_sunzex
 
             sOutputPath = ReadFromRegistry(KEY_NAME_SUNZEX_outputPath, sTemplatePath);
             editBox_thumucxuat.Text = sOutputPath;
-
             checkBox_PKL.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_PKL, "1"));
-
             checkBox_openAfter.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_openAfter, "1"));
-
             checkBox_xuatRieng.Checked = "1".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_outSeparate, "0"));
+            combobox1.Text = "TISU".Equals(ReadFromRegistry(KEY_NAME_SUNZEX_COMPANY, "Tisu")) ? "Tisu" : "Sunzex";
+            tab_xnk_tisu.Label = "XNK " + combobox1.Text;
+            Globals.Ribbons.Ribbon1.tab_xnk_tisu.Label = "XNK " + combobox1.Text;
+            mCompanyName = combobox1.Text;
         }
 
         private void button5_Click(object sender, RibbonControlEventArgs e)
@@ -140,7 +143,7 @@ namespace ribbon_xnk_sunzex
 
             if (checkBox_xuatRieng.Checked)
             {
-                ship.filename = @"SUNZEX_SHIPING." + worksheet.Range["R49"].Value2.Replace("/", "");
+                ship.filename = mCompanyName.ToUpper() + @"_SHIPING." + worksheet.Range["R49"].Value2.Replace("/", "");
                 ship.sheetname = worksheet.Range["R49"].Value2.Replace("/", "");
             }
             else
@@ -148,7 +151,7 @@ namespace ribbon_xnk_sunzex
                 a = ship.comodity.Substring(ship.comodity.IndexOf(@":") + 6, 2) + "." + ship.comodity.Substring(ship.comodity.IndexOf(@":") + 8, 3);
                 ship.sheetname = a.Replace("/", "");
 
-                ship.filename = @"SUNZEX_SHIPING." + ship.date.Substring(6, 4) + ".T" + ship.date.Substring(3, 2);
+                ship.filename = mCompanyName.ToUpper() + @"_SHIPING." + ship.date.Substring(6, 4) + ".T" + ship.date.Substring(3, 2);
             }
 
             Copy_shipping_work_sheet(ship);
@@ -158,14 +161,14 @@ namespace ribbon_xnk_sunzex
             Microsoft.Office.Interop.Excel.Application app = new Microsoft.Office.Interop.Excel.Application();
             try
             {
-                string templatePath = sTemplatePath + @"\Sunzex_SHIP.xlsx";
+                string templatePath = sTemplatePath + @"\"+ mCompanyName + "_SHIP.xlsx";
                 string outputPath = sOutputPath + @"\" + ship.filename + ".xlsx";
 
                 app.Visible = false;
                 app.Workbooks.Add();
                 if (!System.IO.File.Exists(templatePath))
                 {
-                    MessageBox.Show("Không tìm thấy file mẫu");
+                    MessageBox.Show("Không tìm thấy file mẫu: "+ mCompanyName + " : "+ templatePath);
                     app.Workbooks.Close();
                     app.Quit();
                     return;
@@ -380,7 +383,6 @@ namespace ribbon_xnk_sunzex
 
             InvoiceModel invoice = new InvoiceModel(type);
 
-            //TODO
             string a;
             invoice.number = "No: " + worksheet.Range["R49"].Value2;
             a = worksheet.Range["F8"].Value2;
@@ -398,21 +400,22 @@ namespace ribbon_xnk_sunzex
 
             if (checkBox_xuatRieng.Checked)
             {
-                invoice.filename = @"SUNZEX_" + a;
+                invoice.filename = mCompanyName.ToUpper() + @"_" + a;
             }
             else
             {
-                invoice.filename = @"SUNZEX_INVOICE." + invoice.date.Substring(6, 4) + ".T" + invoice.date.Substring(3, 2);
+                invoice.filename = mCompanyName.ToUpper() + @"_INVOICE." + invoice.date.Substring(6, 4) + ".T" + invoice.date.Substring(3, 2);
             }
 
             try
             {
                 for (int i = 1; i <= type; i++)
                 {
-                    invoice.detail_name[i] = (worksheet.Range["F" + (items[i].Row + 3)].Value2.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
-                    invoice.detail_order[i] = worksheet.Range["F" + (items[i].Row + 3)].Value2.Substring(0, 3);
                     a = worksheet.Range["F" + (items[i].Row + 3)].Value2;
-                    a = a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
+                    invoice.detail_name[i] = isTisuCom() ? (a.Contains("omposition") ? "COMPOSITION BOOK" : "NOTEBOOK") : (a.Contains("giấy") ? "PAPER FOLDER" : "PP FOLDER");
+                    invoice.detail_order[i] = a.Substring(1, a.IndexOf("#&")-1);
+                    a = worksheet.Range["F" + (items[i].Row + 3)].Value2;
+                    a = isTisuCom() ? a.Substring(a.LastIndexOf("(") + 1, a.LastIndexOf(")") - a.LastIndexOf("(") - 1) : a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
                     invoice.detail_size[i] = a.Replace(" ", "").Replace("X", "-").Replace("x", "-").Replace("*", "-").Replace("C", "").Replace("c", "").Replace("M", "").Replace("m", "").Replace(",", ".");
                     invoice.detail_quantity[i] = worksheet.Range["Q" + (items[i].Row + 6)].Value2.Replace(".", "").Replace(",", ".");
                     invoice.detail_price[i] = worksheet.Range["R" + (items[i].Row + 8)].Value2.Replace(".", "").Replace(",", ".");
@@ -442,9 +445,8 @@ namespace ribbon_xnk_sunzex
                     if (aDialog.ShowDialog() == CommonFileDialogResult.Ok)
                     {
                         pklapp = new Microsoft.Office.Interop.Excel.Application();
-                        pklapp.Visible = true;
+                        pklapp.Visible = false;
                         pklapp.Workbooks.Add(aDialog.FileName);
-                        //pklapp.Workbooks[1].Sheets[1].Activate();
                         _Worksheet sheet = pklapp.ActiveSheet;
 
                         Range POitems = sheet.Cells;
@@ -512,14 +514,14 @@ namespace ribbon_xnk_sunzex
             Microsoft.Office.Interop.Excel.Application app = new Microsoft.Office.Interop.Excel.Application();
             try
             {
-                string templatePath = sTemplatePath + @"\Sunzex_INV.xlsx";
+                string templatePath = sTemplatePath + @"\" + mCompanyName + @"_INV.xlsx";
                 string outputPath = sOutputPath + @"\" + invoice.filename + ".xlsx";
 
                 app.Visible = false;
                 app.Workbooks.Add();
                 if (!System.IO.File.Exists(templatePath))
                 {
-                    MessageBox.Show("Không tìm thấy file mẫu");
+                    MessageBox.Show("Không tìm thấy file mẫu: " + mCompanyName + " : " + templatePath);
                     app.Workbooks.Close();
                     app.Quit();
                     return;
@@ -556,14 +558,17 @@ namespace ribbon_xnk_sunzex
                     throw new IOException("File " + invoice.filename + " đang được mở nên không thể ghi đè.  Hãy đóng file và thử tạo lại invoice! ");
                 }
 
-                //TODO
                 //Begin copy
                 ws.Copy(sheet);
                 app.Workbooks[3].Sheets[1].Activate();
                 sheet = app.ActiveSheet;
 
                 sheet.Range["E7"].Value2 = invoice.number;
-                sheet.Range["I7"].Value2 = invoice.date;
+                if (isTisuCom()) {
+                    sheet.Range["H7"].Value2 = "Date: " + invoice.date;
+                } else { 
+                    sheet.Range["I7"].Value2 = invoice.date;
+                }
                 sheet.Range["A10"].Value2 = invoice.consignee;
                 sheet.Range["A17"].Value2 = invoice.portload;
                 sheet.Range["C17"].Value2 = invoice.destination;
@@ -576,16 +581,16 @@ namespace ribbon_xnk_sunzex
                     for (int i = 1; i <= invoice.type; i++)
                     {
                         sheet.Range["A" + (row1 + i * 3)].Value2 = invoice.detail_name[i];
-                        sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
+                        sheet.Range["A" + (row1 + i * 3 + 1)].Value2 = @"ORDER: HSS" + (Int32.Parse(invoice.detail_order[i]) + 9000);
                         sheet.Range["A" + (row1 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row1 + i * 3)].Value2 = invoice.detail_quantity[i];
-                        sheet.Range["G" + (row1 + i * 3)].Value2 = "0.03";
+                        sheet.Range["G" + (row1 + i * 3)].Value2 = isTisuCom() ? "0.16":"0.03";
                     }
                     int row2 = row1 + 4 + 3 * invoice.type;
                     for (int i = 1; i <= invoice.type; i++)
                     {
                         sheet.Range["A" + (row2 + i * 3)].Value2 = invoice.detail_name[i];
-                        sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
+                        sheet.Range["A" + (row2 + i * 3 + 1)].Value2 = @"ORDER: HSS" + (Int32.Parse(invoice.detail_order[i]) + 9000);
                         sheet.Range["A" + (row2 + i * 3 + 2)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row2 + i * 3)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row2 + i * 3)].Value2 = invoice.detail_price[i];
@@ -596,7 +601,7 @@ namespace ribbon_xnk_sunzex
                     int row1 = 20;
                     for (int i = 1; i <= invoice.type; i++)
                     {
-                        sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i].Substring(1, invoice.detail_order[i].Length - 1);
+                        sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS" + (Int32.Parse(invoice.detail_order[i]) + 9000);
                         sheet.Range["A" + (row1 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row1 + i * 2)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row1 + i * 2)].Value2 = "0.03";
@@ -604,7 +609,7 @@ namespace ribbon_xnk_sunzex
                     int row2 = row1 + 4 + 2 * invoice.type;
                     for (int i = 1; i <= invoice.type; i++)
                     {
-                        sheet.Range["A" + (row2 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS90" + invoice.detail_order[i];
+                        sheet.Range["A" + (row2 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS" + (Int32.Parse(invoice.detail_order[i]) + 9000);
                         sheet.Range["A" + (row2 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row2 + i * 2)].Value2 = invoice.detail_quantity[i];
                         sheet.Range["G" + (row2 + i * 2)].Value2 = invoice.detail_price[i];
@@ -626,11 +631,11 @@ namespace ribbon_xnk_sunzex
             }
             catch (IOException ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.ToString());
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.ToString());
             }
             finally
             {
@@ -654,5 +659,15 @@ namespace ribbon_xnk_sunzex
             }
         }
 
+        private void combobox1_TextChanged(object sender, RibbonControlEventArgs e)
+        {
+            StoreInRegistry(KEY_NAME_SUNZEX_COMPANY, combobox1.Text);
+            tab_xnk_tisu.Label = "XNK " + combobox1.Text;
+            mCompanyName = combobox1.Text;
+        }
+
+        private bool isTisuCom() {
+            return mCompanyName.Equals("Tisu");
+        }
     }
 }

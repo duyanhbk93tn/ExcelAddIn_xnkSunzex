@@ -35,7 +35,9 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(xnk_ribbon));
-            this.tab_xnk = this.Factory.CreateRibbonTab();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl1 = this.Factory.CreateRibbonDropDownItem();
+            Microsoft.Office.Tools.Ribbon.RibbonDropDownItem ribbonDropDownItemImpl2 = this.Factory.CreateRibbonDropDownItem();
+            this.tab_xnk_tisu = this.Factory.CreateRibbonTab();
             this.group1 = this.Factory.CreateRibbonGroup();
             this.button5 = this.Factory.CreateRibbonButton();
             this.editBox_hoadonmau = this.Factory.CreateRibbonEditBox();
@@ -55,27 +57,29 @@
             this.button1 = this.Factory.CreateRibbonButton();
             this.group3 = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
-            this.tab_xnk.SuspendLayout();
+            this.combobox1 = this.Factory.CreateRibbonComboBox();
+            this.tab_xnk_tisu.SuspendLayout();
             this.group1.SuspendLayout();
             this.group_xnk.SuspendLayout();
             this.group2.SuspendLayout();
             this.group3.SuspendLayout();
             this.SuspendLayout();
             // 
-            // tab_xnk
+            // tab_xnk_tisu
             // 
-            this.tab_xnk.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
-            this.tab_xnk.Groups.Add(this.group1);
-            this.tab_xnk.Groups.Add(this.group_xnk);
-            this.tab_xnk.Groups.Add(this.group2);
-            this.tab_xnk.Groups.Add(this.group3);
-            this.tab_xnk.Label = "XNK Sunzex";
-            this.tab_xnk.Name = "tab_xnk";
+            this.tab_xnk_tisu.ControlId.ControlIdType = Microsoft.Office.Tools.Ribbon.RibbonControlIdType.Office;
+            this.tab_xnk_tisu.Groups.Add(this.group1);
+            this.tab_xnk_tisu.Groups.Add(this.group_xnk);
+            this.tab_xnk_tisu.Groups.Add(this.group2);
+            this.tab_xnk_tisu.Groups.Add(this.group3);
+            this.tab_xnk_tisu.Label = "XNK Sunzex/Tisu";
+            this.tab_xnk_tisu.Name = "tab_xnk_tisu";
             // 
             // group1
             // 
             this.group1.Items.Add(this.button5);
             this.group1.Items.Add(this.editBox_hoadonmau);
+            this.group1.Items.Add(this.combobox1);
             this.group1.Items.Add(this.separator2);
             this.group1.Items.Add(this.button7);
             this.group1.Items.Add(this.editBox_thumucxuat);
@@ -213,14 +217,25 @@
             this.button2.ShowImage = true;
             this.button2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button2_Click);
             // 
+            // combobox1
+            // 
+            ribbonDropDownItemImpl1.Label = "Tisu";
+            ribbonDropDownItemImpl2.Label = "Sunzex";
+            this.combobox1.Items.Add(ribbonDropDownItemImpl1);
+            this.combobox1.Items.Add(ribbonDropDownItemImpl2);
+            this.combobox1.Label = "cty";
+            this.combobox1.Name = "combobox1";
+            this.combobox1.ShowLabel = false;
+            this.combobox1.TextChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.combobox1_TextChanged);
+            // 
             // xnk_ribbon
             // 
             this.Name = "xnk_ribbon";
             this.RibbonType = "Microsoft.Excel.Workbook";
-            this.Tabs.Add(this.tab_xnk);
+            this.Tabs.Add(this.tab_xnk_tisu);
             this.Load += new Microsoft.Office.Tools.Ribbon.RibbonUIEventHandler(this.Ribbon1_Load);
-            this.tab_xnk.ResumeLayout(false);
-            this.tab_xnk.PerformLayout();
+            this.tab_xnk_tisu.ResumeLayout(false);
+            this.tab_xnk_tisu.PerformLayout();
             this.group1.ResumeLayout(false);
             this.group1.PerformLayout();
             this.group_xnk.ResumeLayout(false);
@@ -235,7 +250,7 @@
 
         #endregion
 
-        internal Microsoft.Office.Tools.Ribbon.RibbonTab tab_xnk;
+        internal Microsoft.Office.Tools.Ribbon.RibbonTab tab_xnk_tisu;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group_xnk;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group1;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button_invoice;
@@ -255,6 +270,7 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_PKL;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group3;
         internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
+        internal Microsoft.Office.Tools.Ribbon.RibbonComboBox combobox1;
     }
 
     partial class ThisRibbonCollection

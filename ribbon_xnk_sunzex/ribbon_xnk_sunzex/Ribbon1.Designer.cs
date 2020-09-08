@@ -41,6 +41,7 @@
             this.group1 = this.Factory.CreateRibbonGroup();
             this.button5 = this.Factory.CreateRibbonButton();
             this.editBox_hoadonmau = this.Factory.CreateRibbonEditBox();
+            this.combobox1 = this.Factory.CreateRibbonComboBox();
             this.separator2 = this.Factory.CreateRibbonSeparator();
             this.button7 = this.Factory.CreateRibbonButton();
             this.editBox_thumucxuat = this.Factory.CreateRibbonEditBox();
@@ -57,7 +58,6 @@
             this.button1 = this.Factory.CreateRibbonButton();
             this.group3 = this.Factory.CreateRibbonGroup();
             this.button2 = this.Factory.CreateRibbonButton();
-            this.combobox1 = this.Factory.CreateRibbonComboBox();
             this.tab_xnk_tisu.SuspendLayout();
             this.group1.SuspendLayout();
             this.group_xnk.SuspendLayout();
@@ -99,6 +99,18 @@
             this.editBox_hoadonmau.Name = "editBox_hoadonmau";
             this.editBox_hoadonmau.ShowLabel = false;
             this.editBox_hoadonmau.Text = null;
+            // 
+            // combobox1
+            // 
+            ribbonDropDownItemImpl1.Label = "Tisu";
+            ribbonDropDownItemImpl2.Label = "Sunzex";
+            this.combobox1.Items.Add(ribbonDropDownItemImpl1);
+            this.combobox1.Items.Add(ribbonDropDownItemImpl2);
+            this.combobox1.Label = "cty";
+            this.combobox1.Name = "combobox1";
+            this.combobox1.ShowLabel = false;
+            this.combobox1.Text = null;
+            this.combobox1.TextChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.combobox1_TextChanged);
             // 
             // separator2
             // 
@@ -216,17 +228,6 @@
             this.button2.Name = "button2";
             this.button2.ShowImage = true;
             this.button2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button2_Click);
-            // 
-            // combobox1
-            // 
-            ribbonDropDownItemImpl1.Label = "Tisu";
-            ribbonDropDownItemImpl2.Label = "Sunzex";
-            this.combobox1.Items.Add(ribbonDropDownItemImpl1);
-            this.combobox1.Items.Add(ribbonDropDownItemImpl2);
-            this.combobox1.Label = "cty";
-            this.combobox1.Name = "combobox1";
-            this.combobox1.ShowLabel = false;
-            this.combobox1.TextChanged += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.combobox1_TextChanged);
             // 
             // xnk_ribbon
             // 

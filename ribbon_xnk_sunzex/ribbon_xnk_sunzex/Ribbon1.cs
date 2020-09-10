@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Deployment.Application;
 using System.Diagnostics;
@@ -13,7 +14,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace ribbon_xnk_sunzex
 {
-    public partial class xnk_ribbon
+    public partial class xnk_ribbon 
     {
         string sTemplatePath = "";
         string sOutputPath = "";
@@ -30,7 +31,11 @@ namespace ribbon_xnk_sunzex
         String[] tisu_sheet_name = { "sheets", "trang:", "trang" };
         String[] tisu_sheet_alt = { " sheets", "trang: ", " trang" };
 
+        string[] tisuPOPrototype = { "P.O", "PO #", "PO:", "PO#" };
+
         string test = "";
+        readonly bool DEBUG_PKL = false;
+        readonly bool DEBUG_ALL = true;
 
         private void Ribbon1_Load(object sender, RibbonUIEventArgs e)
         {
@@ -423,7 +428,7 @@ namespace ribbon_xnk_sunzex
                     invoice.detail_order[i] = a.Substring(1, a.IndexOf("#&")-1);
                     if (isTisuCom()) {
                         foreach (string num in tisuSheetType)
-                            if (a.Contains(num + @" tờ")) invoice.detail_sheets_num[i] = num;
+                            if (a.Contains(num) && a.Contains(@" tờ")) invoice.detail_sheets_num[i] = num;
                     }
                     a = worksheet.Range["F" + (items[i].Row + 3)].Value2;
                     a = isTisuCom() ? a.Substring(a.LastIndexOf("(") + 1, a.LastIndexOf(")") - a.LastIndexOf("(") - 1) : a.Substring(a.IndexOf("(") + 1, a.IndexOf(")") - a.IndexOf("(") - 1);
@@ -467,19 +472,98 @@ namespace ribbon_xnk_sunzex
                             Range workSheetCells = sheet.Cells;
                             Range aPOItem = null, aSizeItem, aTypeItem = null;
                             Range firstResultPO = null, firstResultSize, firstResultType = null;
-                            string[] sPOs = { "P.O", "PO #", "PO:", "PO#", "PO" };
                             int id_PO = 0, id_Type = 0;
 
-                            for (id_PO = 0; id_PO < 5; id_PO++)
+                            /*for (id_PO = 0; id_PO < 5; id_PO++)
                             {
-                                aPOItem = workSheetCells.Find(sPOs[id_PO]);
+                                aPOItem = workSheetCells.Find(tisuPOPrototype[id_PO]);
                                 if (aPOItem != null)
                                 {
                                     firstResultPO = aPOItem;
                                     break;
                                 }
+                            }*/
+                            //make PO stored value table
+                            SortedList<int, string> existPOProtos = new SortedList< int, string> ();
+                            for (int i = 0; i < tisuPOPrototype.Length; i++)
+                            {
+                                aPOItem = workSheetCells.Find(tisuPOPrototype[i]);
+                                if (aPOItem != null && aPOItem.Value2.Contains(tisuPOPrototype[i])) {
+                                    existPOProtos.Add(aPOItem.Row, aPOItem.Value2);
+                                    firstResultPO = aPOItem;
+                                    while (aPOItem != null) {
+                                        aPOItem = findAfterCell(aPOItem, workSheetCells, aPOItem);
+                                        if (aPOItem != null && aPOItem.Address != firstResultPO.Address) {
+                                            existPOProtos.Add(aPOItem.Row, aPOItem.Value2);
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
                             }
-                            for (int j=0; j < 3; j++)
+                            test = "PO count="+existPOProtos.Count+"\r\n";
+                            foreach (var kvp in existPOProtos) {
+                                test += " [" +kvp.Key+":"+kvp.Value+ "]";
+                            }
+                            if (DEBUG_PKL) MessageBox.Show(test);
+
+                            //make Size stored value table
+                            string size = ""; string sheetType = "";
+                            SortedList<int, string> existSizeProtos = new SortedList<int, string>();
+                            aSizeItem = workSheetCells.Find("cm");
+                            firstResultSize = aSizeItem;
+                            if (aSizeItem != null && aSizeItem.Value2.Contains("cm"))
+                            {
+                                firstResultSize = aSizeItem;
+                                while (aSizeItem != null)
+                                {
+                                    //if (DEBUG_PKL) MessageBox.Show(aSizeItem.Address + ":" + aSizeItem.Value2);
+                                    size = getTisuBookSize(aSizeItem.Value2);
+                                    if (!size.Equals(WRONG_MEASURE)) {
+                                        existSizeProtos.Add(aSizeItem.Row, size);
+                                    }
+                                    aSizeItem = findAfterString("cm", workSheetCells, aSizeItem);
+                                    if (aSizeItem == null || aSizeItem.Address == firstResultSize.Address) {
+                                        break;
+                                    }
+                                }
+                            }
+                            test = "Size count=" + existSizeProtos.Count + "\r\n";
+                            foreach (var kvp in existSizeProtos)
+                            {
+                                test += " [" + kvp.Key + ":" + kvp.Value + "]";
+                            }
+                            if (DEBUG_PKL) MessageBox.Show(test);
+
+                            //make sheet number stored value table
+                            SortedList<int, string> existSheetNumProtos = new SortedList<int, string>();
+                            for (int j = 0; j < tisu_sheet_name.Length; j++)
+                            {
+                                aTypeItem = workSheetCells.Find(tisu_sheet_name[j]);
+                                if (aTypeItem != null && aTypeItem.Value2.Contains(tisu_sheet_name[j]))
+                                {
+                                    firstResultType = aTypeItem;
+                                    while (aTypeItem != null) {
+                                        sheetType = getTisuBookType(aTypeItem.Value2, j);
+                                        if (!sheetType.Equals(WRONG_MEASURE) && aTypeItem.Value2.Contains(tisu_sheet_name[j]))
+                                        {
+                                            if (!existSheetNumProtos.ContainsKey(aTypeItem.Row))
+                                            existSheetNumProtos.Add(aTypeItem.Row, sheetType);
+                                        }
+                                        aTypeItem = findAfterString(tisu_sheet_name[j], workSheetCells, aTypeItem);
+                                        if (aTypeItem == null || aTypeItem.Address == firstResultType.Address)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            test = "Sheet Type count=" + existSheetNumProtos.Count + "\r\n";
+                            foreach (var kvp in existSheetNumProtos) {
+                                test += " [" + kvp.Key + ":" + kvp.Value + "]";
+                            }
+                            if (DEBUG_PKL) MessageBox.Show(test);
+                            /*for (int j=0; j < 3; j++)
                             {
                                 aTypeItem = workSheetCells.Find(tisu_sheet_name[j]);
                                 if (aTypeItem != null)
@@ -488,28 +572,29 @@ namespace ribbon_xnk_sunzex
                                     id_Type = j;
                                     break;
                                 }
-                            }
-
-                            aSizeItem = workSheetCells.Find("cm");
-                            firstResultSize = aSizeItem;
-                            string size = ""; string sheetType = "";
+                            }*/
                             int max = 0;
-                            while (max < 20 && aPOItem != null && aSizeItem != null && aTypeItem != null)
+                            while (max < 30 && max < existPOProtos.Count && max < existSizeProtos.Count && max < existSheetNumProtos.Count)
                             {
-                                MessageBox.Show("LOOP while: " + max);
-                                max++; 
-                                size = getTisuBookSize(aSizeItem.Value2);
-                                while (aSizeItem != null && size.Equals(WRONG_MEASURE))
+                                if (DEBUG_PKL) MessageBox.Show("LOOP while: " + max);
+                                //int count = 0;
+                                size = existSizeProtos.Values[max];
+                                /*while (aSizeItem != null && size.Equals(WRONG_MEASURE) && count < 2)
                                 {
+                                    count++;
+                                    workSheetCells.Find(firstResultSize);
+                                    if (DEBUG_PKL) MessageBox.Show("IN while: " + max+ " FindNext 1 size="+ size);
                                     aSizeItem = workSheetCells.FindNext(aSizeItem);
-                                    if (aSizeItem.Address == firstResultSize.Address) aSizeItem = null;
+                                    if (aSizeItem.Address == firstResultSize.Address) { aSizeItem = null; size = ""; break; }
                                     size = getTisuBookSize(aSizeItem.Value2);
-                                }
-
-                                sheetType = getTisuBookType(aTypeItem.Value2, id_Type);
-                                while (aTypeItem != null && sheetType.Equals(WRONG_MEASURE))
+                                }*/
+                                sheetType = existSheetNumProtos.Values[max];
+                                /*while (aTypeItem != null && sheetType.Equals(WRONG_MEASURE) && count < 2)
                                 {
+                                    count++;
+                                    workSheetCells.Find(firstResultType);
                                     aTypeItem = workSheetCells.FindNext(aTypeItem);
+                                    if (DEBUG_PKL) MessageBox.Show("IN while: " + max+ " FindNext 2 sheetType="+ sheetType);
                                     sheetType = getTisuBookType(aTypeItem.Value2, id_Type);
                                     if (aTypeItem.Address == firstResultSize.Address) {
                                         for (int j = id_Type + 1; ; j++) {
@@ -522,25 +607,22 @@ namespace ribbon_xnk_sunzex
                                             }
                                         }
                                     }
-                                }
-
+                                }*/
                                 string b;
-                                string size1 = size.Split('-')[1]+"-"+size.Split('-')[0];
-                                for (int i = 1; i <= type; i++)
-                                {
-                                        MessageBox.Show("COMAPRE: size=" + size + " sheetType=" + sheetType + "\r\nCOMAPRE WITH: i=" + i + " size=" + invoice.detail_size[i] + @" sheetType="+ invoice.detail_sheets_num[i]+ "\r\nCOMAPRE: size1=" + size1 + " sheetType=" + sheetType+"\r\n");
+                                string size1 = size!= null ? size.Split('-')[1]+"-"+size.Split('-')[0] : "";
+                                for (int i = 1; i <= type; i++) {
                                     if ((size1.Equals(invoice.detail_size[i]) || size.Equals(invoice.detail_size[i])) && sheetType.Equals(invoice.detail_sheets_num[i]))
                                     {
-                                        b = getTisuPO(aPOItem.Value2);
+                                        if (DEBUG_PKL) MessageBox.Show("COMAPRE: size=" + size + " sheetType=" + sheetType + "\r\nCOMAPRE WITH: i=" + i + " size=" + invoice.detail_size[i] + @" sheetType=" + invoice.detail_sheets_num[i] + "\r\nCOMAPRE: size1=" + size1 + " sheetType=" + sheetType+"\r\n" + "\r\n\r\n aPOItem Address: " + existPOProtos.Keys[max] + "\r\n aSizeItem Address ROW: " + existSizeProtos.Keys[max] + "\r\n aTypeItem Address: " + aTypeItem.Address);
+                                        b = getTisuPO(existPOProtos.Values[max]);
                                         invoice.detail_PO[i] = getShortPOString(invoice.detail_PO[i], b);
                                         break;
                                     }
                                 }
 
-                                aSizeItem = workSheetCells.FindNext(aSizeItem);
-                                if (aSizeItem.Address == firstResultSize.Address) { aSizeItem = null; }
-
-                                aTypeItem = workSheetCells.FindNext(aTypeItem);
+                                //aSizeItem = findAfterCell(aSizeItem, workSheetCells, aSizeItem);
+                                //if (aSizeItem.Address == firstResultSize.Address) { aSizeItem = null; }
+                                /*aTypeItem = findAfterCell(aTypeItem, workSheetCells, aTypeItem);
                                 if (aTypeItem.Address == firstResultType.Address)
                                 {
                                     for (int j = id_Type+1; ; j++)
@@ -555,12 +637,13 @@ namespace ribbon_xnk_sunzex
                                         }
                                     }
                                     if (aTypeItem.Address == firstResultType.Address) aTypeItem = null;
-                                }
-
-                                if (aPOItem.Address.Equals(firstResultPO.Address))
+                                }*/
+                                /*aPOItem = findAfterCell(aPOItem, workSheetCells, aPOItem);
+                                if (aPOItem.Address == firstResultPO.Address) aPOItem = null;
                                 {
                                     //MessageBox.Show("aPOItem.Address == firstResultPO.Address: "+ sPOs[id_PO]);
                                     bool stillFound = false;
+
                                     for (int la = aPOItem.Row; la < 200; la++) {
                                         string adrs = "" + (char)('A' + aPOItem.Column - 1) + la;
                                         if (sheet1.Range[adrs].Value2 != null && sheet1.Range[adrs].Value2.Contains(sPOs[id_PO])) {
@@ -571,9 +654,10 @@ namespace ribbon_xnk_sunzex
                                         }
                                     }
 
-                                    if (!stillFound) {
-                                        for (id_PO += 1; id_PO < 5; id_PO++)
+                                if (!stillFound) {
+                                        for (; id_PO < 5; id_PO++)
                                         {
+                                            id_PO += 1;
                                             aPOItem = workSheetCells.Find(sPOs[id_PO]);
                                             if (aPOItem != null)
                                             {
@@ -585,9 +669,12 @@ namespace ribbon_xnk_sunzex
                                     }
                                 } else { 
                                     //TODO
-                                }
+                                }*/
+                                if (DEBUG_PKL) MessageBox.Show(" === max=" + max + " existPOProtos=" + existPOProtos.Values[max]+ " size:"+existSizeProtos.Values[max] + (aTypeItem == null ? "aTypeItem=null" : ""));
+                                max++;
                             }
-                            MessageBox.Show(" === max=" + max + (aPOItem==null? "aPOItem=null":"") + (aSizeItem == null ? "aSizeItem=null" : "")+(aTypeItem == null ? "aTypeItem=null" : ""));
+                            if (DEBUG_ALL || DEBUG_PKL) 
+                                MessageBox.Show(" === OUT and max=" + max + " existPOProtos=" + existPOProtos.Count + " size:" + existSizeProtos.Count + "existSheetNumProtos=" + existSheetNumProtos.Count);
                         }
                         else
                         {
@@ -738,7 +825,7 @@ namespace ribbon_xnk_sunzex
                         sheet.Range["A" + (row1 + i * 2)].Value2 = invoice.detail_name[i] + " - " + @"ORDER: HSS" + (Int32.Parse(invoice.detail_order[i]) + 9000);
                         sheet.Range["A" + (row1 + i * 2 + 1)].Value2 = @"PO#" + invoice.detail_PO[i];
                         sheet.Range["E" + (row1 + i * 2)].Value2 = invoice.detail_quantity[i];
-                        sheet.Range["G" + (row1 + i * 2)].Value2 = "0.03";
+                        sheet.Range["G" + (row1 + i * 2)].Value2 = isTisuCom() ? "0.16" : "0.03";
                     }
                     int row2 = row1 + 4 + 2 * invoice.type;
                     for (int i = 1; i <= invoice.type; i++)
@@ -814,7 +901,7 @@ namespace ribbon_xnk_sunzex
                 rawData = strlist[1].IndexOf(" ") != -1 ? strlist[1].Substring(0, strlist[1].IndexOf(" ")) : strlist[1];
             }
             rawData = rawData.Replace(@".", @"").Replace(@":", @"").Replace(@"#", @"");
-            MessageBox.Show("getTisuPO:" + rawData + "\r\n" + tisuPOCellValue);
+            if (DEBUG_PKL) MessageBox.Show("getTisuPO:" + rawData + "\r\n" + tisuPOCellValue);
             return rawData;
         }
 
@@ -829,9 +916,16 @@ namespace ribbon_xnk_sunzex
             rawData = rawData.Replace(" ", "").Replace("cm", "");
             rawData = rawData.Replace("x", "-").Replace("*", "-");
 
-            if (rawData.Split('-').Length == 2) { MessageBox.Show("get Book Size:"+rawData); return rawData; }
+            string[] a = rawData.Split('-');
+            if (a.Length == 2) {
+                if (a[0].IndexOf(".") == -1) a[0] += ".0";
+                if (a[1].IndexOf(".") == -1) a[1] += ".0";
+                rawData = a[0] + "-" + a[1];
+                //if (DEBUG_PKL) MessageBox.Show("get Book Size:"+rawData); 
+                return rawData; 
+            }
 
-            //MessageBox.Show("get Book Size:" + WRONG_MEASURE+"\r\n"+ tisuSizeCellValue);
+            //if (DEBUG_PKL) MessageBox.Show("get Book Size:" + WRONG_MEASURE+"\r\n"+ tisuSizeCellValue);
             return WRONG_MEASURE;
         }
         string getTisuBookType(string tisuTypeCellValue, int type_id)
@@ -839,9 +933,12 @@ namespace ribbon_xnk_sunzex
             string rawData = tisuTypeCellValue.ToLower().Replace("\r\n", " ");
             while (rawData.Contains("  ")) rawData = rawData.Replace("  ", " ");
             rawData.Replace(tisu_sheet_alt[type_id], tisu_sheet_name[type_id]);
-            foreach (string bk in tisuSheetType) if (rawData.Contains(bk)) { MessageBox.Show("getTisuBookType:" + bk + "\r\n" + tisuTypeCellValue + "\r\n" + type_id);  return bk; }
+            foreach (string bk in tisuSheetType) if (rawData.Contains(bk)) { 
+                    //if (DEBUG_PKL) MessageBox.Show("getTisuBookType:" + bk + "\r\n" + tisuTypeCellValue + "\r\n" + type_id);  
+                    return bk; 
+                }
 
-            //MessageBox.Show("getTisuBookType:" + WRONG_MEASURE + "\r\n" + tisuTypeCellValue + "\r\n" + type_id);
+            //if (DEBUG_PKL) MessageBox.Show("getTisuBookType:" + WRONG_MEASURE + "\r\n" + tisuTypeCellValue + "\r\n" + tisu_sheet_name[type_id]);
             return WRONG_MEASURE;
         }
 
@@ -859,8 +956,22 @@ namespace ribbon_xnk_sunzex
             } else {
                 strPO = newCome;
             }
-            //MessageBox.Show("getShortPOString:" + strPO);
+            //if (DEBUG_PKL) MessageBox.Show("getShortPOString:" + strPO);
             return strPO;
+        }
+
+        string getLastCellAddress(Range range) { 
+            string lastColumn = ""+ ('A' + range.Columns.Count - 1);
+            int lastRow = range.Rows.Count;
+            return lastColumn+lastRow;
+        }
+
+        Range findAfterString(string val, Range rangeToFind, Object after)
+        {
+            return rangeToFind.Find(val, after, XlFindLookIn.xlValues, Type.Missing, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, false, Type.Missing);
+        }
+        Range findAfterCell(Range cell, Range rangeToFind, Object after) {
+            return rangeToFind.Find(""+cell.Value2, after, XlFindLookIn.xlValues, Type.Missing, XlSearchOrder.xlByRows, XlSearchDirection.xlNext, false, false, Type.Missing);
         }
     }
 }

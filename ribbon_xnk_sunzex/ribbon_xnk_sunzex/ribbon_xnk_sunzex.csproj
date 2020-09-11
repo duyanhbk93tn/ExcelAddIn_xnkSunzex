@@ -30,10 +30,10 @@
     <DefineConstants>VSTO40</DefineConstants>
     <IsWebBootstrapper>False</IsWebBootstrapper>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <PublishUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_tisu\publish\</PublishUrl>
-    <InstallUrl>\\DESKTOP-0NORIIQ\DuyAnh_share_folder\XNK_tisu\install\</InstallUrl>
+    <PublishUrl>C:\xnk_tisu\</PublishUrl>
+    <InstallUrl />
     <TargetCulture>en</TargetCulture>
-    <ApplicationVersion>1.0.0.6</ApplicationVersion>
+    <ApplicationVersion>1.0.0.9</ApplicationVersion>
     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>2</UpdateInterval>

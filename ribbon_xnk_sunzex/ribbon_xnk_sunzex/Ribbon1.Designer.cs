@@ -72,7 +72,7 @@
             this.tab_xnk_tisu.Groups.Add(this.group_xnk);
             this.tab_xnk_tisu.Groups.Add(this.group2);
             this.tab_xnk_tisu.Groups.Add(this.group3);
-            this.tab_xnk_tisu.Label = "XNK Sunzex/Tisu";
+            this.tab_xnk_tisu.Label = "Xnk Tisu";
             this.tab_xnk_tisu.Name = "tab_xnk_tisu";
             // 
             // group1
@@ -102,6 +102,7 @@
             // 
             // combobox1
             // 
+            this.combobox1.Enabled = false;
             ribbonDropDownItemImpl1.Label = "Tisu";
             ribbonDropDownItemImpl2.Label = "Sunzex";
             this.combobox1.Items.Add(ribbonDropDownItemImpl1);

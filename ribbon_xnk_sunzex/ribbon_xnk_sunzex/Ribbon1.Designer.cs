@@ -56,13 +56,26 @@
             this.editBox5 = this.Factory.CreateRibbonEditBox();
             this.checkBox1 = this.Factory.CreateRibbonCheckBox();
             this.button1 = this.Factory.CreateRibbonButton();
+            this.group4 = this.Factory.CreateRibbonGroup();
+            this.button3_An = this.Factory.CreateRibbonButton();
+            this.button4_Hien = this.Factory.CreateRibbonButton();
+            this.btn_Calc_NXK = this.Factory.CreateRibbonButton();
+            this.checkBoxSTT = this.Factory.CreateRibbonCheckBox();
+            this.editBoxFromSTT = this.Factory.CreateRibbonEditBox();
+            this.editBoxToSTT = this.Factory.CreateRibbonEditBox();
             this.group3 = this.Factory.CreateRibbonGroup();
+            this.tinh_PKL = this.Factory.CreateRibbonButton();
             this.button2 = this.Factory.CreateRibbonButton();
+            this.checkBox_PKL_ghi = this.Factory.CreateRibbonCheckBox();
+            this.group5 = this.Factory.CreateRibbonGroup();
+            this.button3 = this.Factory.CreateRibbonButton();
             this.tab_xnk_tisu.SuspendLayout();
             this.group1.SuspendLayout();
             this.group_xnk.SuspendLayout();
             this.group2.SuspendLayout();
+            this.group4.SuspendLayout();
             this.group3.SuspendLayout();
+            this.group5.SuspendLayout();
             this.SuspendLayout();
             // 
             // tab_xnk_tisu
@@ -71,7 +84,9 @@
             this.tab_xnk_tisu.Groups.Add(this.group1);
             this.tab_xnk_tisu.Groups.Add(this.group_xnk);
             this.tab_xnk_tisu.Groups.Add(this.group2);
+            this.tab_xnk_tisu.Groups.Add(this.group4);
             this.tab_xnk_tisu.Groups.Add(this.group3);
+            this.tab_xnk_tisu.Groups.Add(this.group5);
             this.tab_xnk_tisu.Label = "Xnk Tisu";
             this.tab_xnk_tisu.Name = "tab_xnk_tisu";
             // 
@@ -102,7 +117,6 @@
             // 
             // combobox1
             // 
-            this.combobox1.Enabled = false;
             ribbonDropDownItemImpl1.Label = "Tisu";
             ribbonDropDownItemImpl2.Label = "Sunzex";
             this.combobox1.Items.Add(ribbonDropDownItemImpl1);
@@ -186,6 +200,7 @@
             this.group2.Items.Add(this.button1);
             this.group2.Label = "Xuất nhiều TK";
             this.group2.Name = "group2";
+            this.group2.Visible = false;
             // 
             // editBox4
             // 
@@ -216,19 +231,104 @@
             this.button1.Name = "button1";
             this.button1.ShowImage = true;
             // 
+            // group4
+            // 
+            this.group4.Items.Add(this.button3_An);
+            this.group4.Items.Add(this.button4_Hien);
+            this.group4.Items.Add(this.btn_Calc_NXK);
+            this.group4.Items.Add(this.checkBoxSTT);
+            this.group4.Items.Add(this.editBoxFromSTT);
+            this.group4.Items.Add(this.editBoxToSTT);
+            this.group4.Label = "Hỗ trợ tính nhập xuất kho";
+            this.group4.Name = "group4";
+            // 
+            // button3_An
+            // 
+            this.button3_An.Label = "ẨN CỘT";
+            this.button3_An.Name = "button3_An";
+            this.button3_An.ScreenTip = "Ẩn các cột không cần thiết trong bảng chi tiết hàng hóa xuất khẩu";
+            this.button3_An.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_An);
+            // 
+            // button4_Hien
+            // 
+            this.button4_Hien.Label = "HIỆN CỘT";
+            this.button4_Hien.Name = "button4_Hien";
+            this.button4_Hien.ScreenTip = "Hiện lại các cột đã ẩn trong bảng chi tiết hàng hóa";
+            this.button4_Hien.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button_Hien);
+            // 
+            // btn_Calc_NXK
+            // 
+            this.btn_Calc_NXK.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.btn_Calc_NXK.Image = ((System.Drawing.Image)(resources.GetObject("btn_Calc_NXK.Image")));
+            this.btn_Calc_NXK.Label = "Tổng xuất NPL theo từng mã";
+            this.btn_Calc_NXK.Name = "btn_Calc_NXK";
+            this.btn_Calc_NXK.ShowImage = true;
+            this.btn_Calc_NXK.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.btn_Calc_NXK_Click);
+            // 
+            // checkBoxSTT
+            // 
+            this.checkBoxSTT.Enabled = false;
+            this.checkBoxSTT.Label = "Chọn theo stt";
+            this.checkBoxSTT.Name = "checkBoxSTT";
+            // 
+            // editBoxFromSTT
+            // 
+            this.editBoxFromSTT.Label = " Từ stt";
+            this.editBoxFromSTT.Name = "editBoxFromSTT";
+            this.editBoxFromSTT.Text = null;
+            // 
+            // editBoxToSTT
+            // 
+            this.editBoxToSTT.Label = " Đến stt";
+            this.editBoxToSTT.Name = "editBoxToSTT";
+            this.editBoxToSTT.Text = null;
+            // 
             // group3
             // 
+            this.group3.Items.Add(this.tinh_PKL);
             this.group3.Items.Add(this.button2);
+            this.group3.Items.Add(this.checkBox_PKL_ghi);
+            this.group3.Label = "Packing list";
             this.group3.Name = "group3";
+            // 
+            // tinh_PKL
+            // 
+            this.tinh_PKL.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.tinh_PKL.Image = ((System.Drawing.Image)(resources.GetObject("tinh_PKL.Image")));
+            this.tinh_PKL.Label = "Tổng PCS theo vùng được chọn";
+            this.tinh_PKL.Name = "tinh_PKL";
+            this.tinh_PKL.ShowImage = true;
+            this.tinh_PKL.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button2_tinh_PKL);
             // 
             // button2
             // 
             this.button2.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
             this.button2.Image = ((System.Drawing.Image)(resources.GetObject("button2.Image")));
-            this.button2.Label = "Thông tin phiên bản công cụ XNK";
+            this.button2.Label = "Tổng toàn bộ";
             this.button2.Name = "button2";
             this.button2.ShowImage = true;
-            this.button2.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.button2_Click);
+            // 
+            // checkBox_PKL_ghi
+            // 
+            this.checkBox_PKL_ghi.Description = "Ghi kết quả vào file excel thay vì hiện ra thông báo";
+            this.checkBox_PKL_ghi.Label = "Ghi vào file";
+            this.checkBox_PKL_ghi.Name = "checkBox_PKL_ghi";
+            this.checkBox_PKL_ghi.ScreenTip = "Ghi kết quả vào file excel thay vì hiện ra thông báo";
+            this.checkBox_PKL_ghi.SuperTip = "Ghi kết quả vào file excel thay vì hiện ra thông báo";
+            this.checkBox_PKL_ghi.Click += new Microsoft.Office.Tools.Ribbon.RibbonControlEventHandler(this.checkBox_PKL_ghi_Click);
+            // 
+            // group5
+            // 
+            this.group5.Items.Add(this.button3);
+            this.group5.Name = "group5";
+            // 
+            // button3
+            // 
+            this.button3.ControlSize = Microsoft.Office.Core.RibbonControlSize.RibbonControlSizeLarge;
+            this.button3.Image = ((System.Drawing.Image)(resources.GetObject("button3.Image")));
+            this.button3.Label = "Hướng dẫn và phiên bản";
+            this.button3.Name = "button3";
+            this.button3.ShowImage = true;
             // 
             // xnk_ribbon
             // 
@@ -244,8 +344,12 @@
             this.group_xnk.PerformLayout();
             this.group2.ResumeLayout(false);
             this.group2.PerformLayout();
+            this.group4.ResumeLayout(false);
+            this.group4.PerformLayout();
             this.group3.ResumeLayout(false);
             this.group3.PerformLayout();
+            this.group5.ResumeLayout(false);
+            this.group5.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -271,8 +375,19 @@
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_openAfter;
         internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_PKL;
         internal Microsoft.Office.Tools.Ribbon.RibbonGroup group3;
-        internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
         internal Microsoft.Office.Tools.Ribbon.RibbonComboBox combobox1;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group4;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton btn_Calc_NXK;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBoxSTT;
+        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBoxFromSTT;
+        internal Microsoft.Office.Tools.Ribbon.RibbonEditBox editBoxToSTT;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button3_An;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button4_Hien;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton tinh_PKL;
+        internal Microsoft.Office.Tools.Ribbon.RibbonGroup group5;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button3;
+        internal Microsoft.Office.Tools.Ribbon.RibbonButton button2;
+        internal Microsoft.Office.Tools.Ribbon.RibbonCheckBox checkBox_PKL_ghi;
     }
 
     partial class ThisRibbonCollection
